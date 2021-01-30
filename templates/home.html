@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"> 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script> 
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script> 
+    <meta charset='utf-8'>
+    <style>
+        .myImg {
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+          }
+          
+          .myImg:hover {opacity: 0.7;}
+          
+          .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            padding-top: 100px; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.9);
+          }
+          
+          .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+          }
+          
+          #caption {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 150px;
+          }
+          
+          .modal-content, #caption {
+            animation-name: zoom;
+            animation-duration: 0.6s;
+          }
+          
+          @keyframes zoom {
+            from {transform:scale(0)}
+            to {transform:scale(1)}
+          }
+          
+          .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+          }
+          
+          .close:hover,
+          .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+          }
+          
+          @media only screen and (max-width: 700px){
+            .modal-content {
+              width: 100%;
+            }
+          }
+    </style>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>{% block title %}MSRV{% endblock %}</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>    
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            document.querySelectorAll('img').forEach(function(img){
+               img.onerror = function(){this.style.display='none';};
+            })
+         });
+         function bigPic(id)
+         {
+            var modal = document.getElementById("myModal");
+
+            var img = document.getElementById(id);
+            var modalImg = document.getElementById("img01");
+            var captionText = document.getElementById("caption");
+              modal.style.display = "block";
+              modalImg.src = img.src;
+              captionText.innerHTML = img.alt ;
+ 
+            var span = document.getElementsByClassName("close")[0];
+   
+            span.onclick = function() {
+              modal.style.display = "none";
+
+            }
+         }
+         
+
+    </script>
+</head>
+<body class="bg-dark mb-3">
+    <form  action="searchfields" method="post">
+        {%csrf_token%}
+        <div class="h-100 d-flex justify-content-center align-items-center" style="margin-top: 2%;">
+			<input type="text" name="fields" placeholder="subreddits seperated by space" class="form-control  " style="width: 25%;">
+			<br><br>
+    </div>
+    <div class="h-100 d-flex justify-content-center align-items-center" style="margin-top: 2%; ">
+      <input type="radio" id="hot" name="sort" value="hot" required>
+      <label style="color: #bbb;" for="hot">Sort by hot</label><br>
+      <input type="radio" id="new" name="sort" value="new">
+      <label style="color: #bbb;" for="new">Sort by new</label><br>
+    </div>
+    <div class="h-100 d-flex justify-content-center align-items-center" style="margin-top: 2%;">
+      <button class="btn btn-light" type="submit" style="width: 25%;">Search</button>
+    </div>
+
+</form>
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+
+    </div>
+    {% if searches %}   
+    {% for i in searches %} 
+    <div class="card bg-light mb-3 mx-auto" style="width: 18rem;">
+        
+        <img id="{{forloop.counter}}" class="card-img-top myImg" src="{{i.url}}" onerror="" onclick="bigPic(id)" alt="{{i.title}}">
+        <div class="card-body">
+          <h5 id="c{{forloop.counter}}" class="card-title">{{i.title}}</h5>
+          <p class="card-text-white">Subreddit: {{i.subreddit}}</p>
+          <p class="card-text-white">Upvotes: {{i.score}}</p>
+          <a href="http://www.reddit.com{{i.permalink}}" class="btn btn-primary">Link to the post</a>
+        </div>
+      </div>
+      {% endfor %} 
+      {% endif %} 
+    {% if not searches %}
+    <div class="d-flex justify-content-center align-items-center" style="height:100px;">
+      <div style="color: #bbb;" >Selected Subreddits viewer</div>   
+       <br>
+      
+
+  </div>
+  <p style="color: #bbb;" class="text-center">Made by skandan </p>
+    {% endif %}
+    
+
+</body>
+</html>
