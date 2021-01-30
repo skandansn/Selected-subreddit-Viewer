@@ -43,6 +43,8 @@ def searchfields(request):
 
     if sort=='hot':
         df=df.sort_values(by=['score'],ascending=False)
+    else:
+        df=df.sort_values(by=['title'],ascending=False)
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
