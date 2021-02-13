@@ -7,20 +7,15 @@ def home(request):
     return render(request,"home.html")
 
 def searchfields(request):
-    from dotenv import load_dotenv
-    load_dotenv()
     try:
         if(request.POST['fields']==''):
             return render(request,'home.html')
     except:
         return render(request,'home.html')
 
-
     x=[]
     x=request.POST['fields'].split()
     sort=request.POST['sort']
-
-    
     import requests,os
     import requests.auth
     try:
@@ -28,7 +23,11 @@ def searchfields(request):
         searchlist=[]
         for i in x:
             searchlist.append(requests.get("https://oauth.reddit.com/r/"+i+"/"+sort, headers=headers,params={'limit':'100'}))
-
+        if len(searchlist[0].json()['data']['children'])==0:
+            from django.contrib import messages
+            messages.info(request, 'Subreddit does not exist')
+        
+            return render(request,"home.html")
         import pandas as pd
         df=pd.DataFrame()
 
@@ -59,24 +58,31 @@ def searchfields(request):
         context={"searches":data}
     except:
         print("renewing token")
-        auth = requests.auth.HTTPBasicAuth('fh6MHyar10oWQQ','URbBcNKAorRWSIGPt79MhUto-HY4vg')
+        auth = requests.auth.HTTPBasicAuth(str(os.getenv('uname')),str(os.getenv('pass')))
         data = {'grant_type': 'refresh_token','refresh_token':str(os.getenv('REDDIT_REFRESH_TOKEN'))}
         headers = {'User-Agent': 'multisubview'}
 
         res = requests.post('https://www.reddit.com/api/v1/access_token',
                             auth=auth,data=data, headers=headers)
         TOKEN = res.json()
+        os.environ["REDDIT_API_KEY"]=TOKEN['access_token']
 
         f=open(r"C:\Users\godsk\Desktop\multisubreddit\.env","w")
-        f.write("REDDIT_API_KEY="+TOKEN['access_token']+"\nREDDIT_REFRESH_TOKEN=-Dyj6IO7m7RwfixhlJb5fTXOj-6bl6w")
+        f.write("REDDIT_API_KEY="+TOKEN['access_token']+"\nREDDIT_REFRESH_TOKEN="+str(os.getenv('REDDIT_REFRESH_TOKEN'))+"\nuname="+str(os.getenv('uname'))+"\npass="+str(os.getenv('pass')))
         f.close()
         headers = {"Authorization": "bearer "+str(os.getenv('REDDIT_API_KEY')), "User-Agent": "multisubview"}
         searchlist=[]
         for i in x:
             searchlist.append(requests.get("https://oauth.reddit.com/r/"+i+"/"+sort, headers=headers,params={'limit':'100'}))
-
+        if len(searchlist[0].json()['data']['children'])==0:
+            from django.contrib import messages
+            messages.info(request, 'Subreddit does not exist')
+        
+            return render(request,"home.html")
         import pandas as pd
         df=pd.DataFrame()
+        
+
 
         for i in searchlist:
             for post in (i.json()['data']['children']):
